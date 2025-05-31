@@ -1,6 +1,6 @@
 name: time_range_sheet_widget
 description: A highly customizable, reusable time range picker bottom sheet widget for Flutter with extensive styling options and responsive behavior.
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/danial2026/time_range_sheet_widget
 
 environment:

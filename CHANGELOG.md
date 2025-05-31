@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.2
+
+- Added `showStartTimeInitially` parameter to control initial tab selection in TimeRangeSheet
+
 ## 0.0.1
 
 - Initial release of TimeRangeSheet widget

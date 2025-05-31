@@ -34,6 +34,9 @@ class TimeRangeSheet extends StatefulWidget {
   /// Whether the widget accepts user interaction
   final bool enabled;
 
+  /// Whether to show start time tab initially (true) or end time tab (false)
+  final bool showStartTimeInitially;
+
   const TimeRangeSheet({
     super.key,
     this.initialStartTime,
@@ -44,6 +47,7 @@ class TimeRangeSheet extends StatefulWidget {
     this.allowInvalidRange = false,
     this.customValidator,
     this.enabled = true,
+    this.showStartTimeInitially = true,
   });
 
   @override
@@ -87,6 +91,7 @@ class _TimeRangeSheetState extends State<TimeRangeSheet> with TickerProviderStat
     _startTime = widget.initialStartTime ?? const TimeOfDay(hour: 9, minute: 0);
     _endTime = widget.initialEndTime ?? const TimeOfDay(hour: 17, minute: 0);
     _style = widget.style ?? TimeRangeSheetStyle.light();
+    _selectedTabIndex = widget.showStartTimeInitially ? 0 : 1;
   }
 
   /// Setup fade-in animation for the widget
@@ -295,7 +300,7 @@ class _TimeRangeSheetState extends State<TimeRangeSheet> with TickerProviderStat
                   child: _buildTabButton(
                     context,
                     theme,
-                    'Start time',
+                    _style.startTimeLabel ?? 'Start time',
                     _formatTime(_startTime),
                     0,
                   ),
@@ -305,7 +310,7 @@ class _TimeRangeSheetState extends State<TimeRangeSheet> with TickerProviderStat
                   child: _buildTabButton(
                     context,
                     theme,
-                    'End time',
+                    _style.endTimeLabel ?? 'End time',
                     _formatTime(_endTime),
                     1,
                   ),
