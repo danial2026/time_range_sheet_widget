@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.3
+
+- Added `showStartTimeInitially` parameter to `showTimeRangeSheet` function
+
 ## 0.0.2
 
 - Added `showStartTimeInitially` parameter to control initial tab selection in TimeRangeSheet

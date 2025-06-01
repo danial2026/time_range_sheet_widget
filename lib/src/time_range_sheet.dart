@@ -768,6 +768,7 @@ Future<TimeRangeData?> showTimeRangeSheet({
   bool isScrollControlled = true,
   bool enableDrag = true,
   bool isDismissible = true,
+  bool showStartTimeInitially = true,
 }) {
   // Auto-detect theme and apply appropriate style
   final effectiveStyle =
@@ -792,6 +793,7 @@ Future<TimeRangeData?> showTimeRangeSheet({
           endTime: end,
         ));
       },
+      showStartTimeInitially: showStartTimeInitially,
       onCancel: () => Navigator.of(context).pop(),
     ),
   );
