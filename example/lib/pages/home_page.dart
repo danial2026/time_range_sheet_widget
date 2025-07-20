@@ -184,6 +184,33 @@ class _HomePageState extends State<HomePage> {
           icon: Icons.warning_amber,
           isDarkMode: _isDarkMode,
         ),
+        const SizedBox(height: 12),
+        ExampleButton(
+          title: 'Single Time Picker',
+          description: 'Pick only one time (no range)',
+          onPressed: _showSinglePickerExample,
+          color: const Color(0xFF10B981),
+          icon: Icons.access_time,
+          isDarkMode: _isDarkMode,
+        ),
+        const SizedBox(height: 12),
+        ExampleButton(
+          title: 'Single Picker 24-Hour',
+          description: 'Single picker with 24-hour format',
+          onPressed: _showSinglePicker24HourExample,
+          color: const Color(0xFF6366F1),
+          icon: Icons.timelapse,
+          isDarkMode: _isDarkMode,
+        ),
+        const SizedBox(height: 12),
+        ExampleButton(
+          title: 'Single Picker Custom Style',
+          description: 'Single picker with custom style',
+          onPressed: _showSinglePickerCustomStyleExample,
+          color: const Color(0xFFF59E42),
+          icon: Icons.color_lens,
+          isDarkMode: _isDarkMode,
+        ),
       ],
     );
   }
@@ -245,6 +272,48 @@ class _HomePageState extends State<HomePage> {
       style: TimeRangeStyles.createInvalidRangeStyle(_isDarkMode),
     );
     _updateSelectedTimeRange(result);
+  }
+
+  Future<void> _showSinglePickerExample() async {
+    final result = await showTimeRangeSheet(
+      context: context,
+      initialStartTime: const TimeOfDay(hour: 12, minute: 0),
+      singlePicker: true,
+      style: TimeRangeStyles.createDefaultStyle(_isDarkMode).copyWith(
+        hourLabel: 'Hour',
+        minuteLabel: 'Minute',
+      ),
+    );
+    if (result != null) {
+      _updateSelectedTimeRange(TimeRangeData(startTime: result.startTime, endTime: result.startTime));
+    }
+  }
+
+  Future<void> _showSinglePicker24HourExample() async {
+    final result = await showTimeRangeSheet(
+      context: context,
+      initialStartTime: const TimeOfDay(hour: 18, minute: 0),
+      singlePicker: true,
+      style: TimeRangeStyles.create24HourStyle(_isDarkMode).copyWith(
+        hourLabel: 'Hour',
+        minuteLabel: 'Minute',
+      ),
+    );
+    if (result != null) {
+      _updateSelectedTimeRange(TimeRangeData(startTime: result.startTime, endTime: result.startTime));
+    }
+  }
+
+  Future<void> _showSinglePickerCustomStyleExample() async {
+    final result = await showTimeRangeSheet(
+      context: context,
+      initialStartTime: const TimeOfDay(hour: 7, minute: 30),
+      singlePicker: true,
+      style: TimeRangeStyles.createCustomStyle(_isDarkMode),
+    );
+    if (result != null) {
+      _updateSelectedTimeRange(TimeRangeData(startTime: result.startTime, endTime: result.startTime));
+    }
   }
 
   void _showEmbeddedExample() {

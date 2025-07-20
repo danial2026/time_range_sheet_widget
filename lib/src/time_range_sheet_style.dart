@@ -165,6 +165,12 @@ class TimeRangeSheetStyle {
   /// Custom label for end time section
   final String? endTimeLabel;
 
+  /// Custom label for the hour picker
+  final String? hourLabel;
+
+  /// Custom label for the minute picker
+  final String? minuteLabel;
+
   /// Custom text for confirm button
   final String? confirmButtonText;
 
@@ -178,7 +184,7 @@ class TimeRangeSheetStyle {
   final bool enableSemanticLabels;
 
   /// Creates a new TimeRangeSheetStyle with the specified customizations
-  /// 
+  ///
   /// All parameters are optional and will fall back to sensible defaults
   /// or theme-based values when not specified.
   const TimeRangeSheetStyle({
@@ -242,6 +248,8 @@ class TimeRangeSheetStyle {
     this.pmText,
     this.startTimeLabel,
     this.endTimeLabel,
+    this.hourLabel,
+    this.minuteLabel,
     this.confirmButtonText,
     this.cancelButtonText,
     this.errorMessage,
@@ -310,6 +318,8 @@ class TimeRangeSheetStyle {
     String? pmText,
     String? startTimeLabel,
     String? endTimeLabel,
+    String? hourLabel,
+    String? minuteLabel,
     String? confirmButtonText,
     String? cancelButtonText,
     String? errorMessage,
@@ -376,6 +386,8 @@ class TimeRangeSheetStyle {
       pmText: pmText ?? this.pmText,
       startTimeLabel: startTimeLabel ?? this.startTimeLabel,
       endTimeLabel: endTimeLabel ?? this.endTimeLabel,
+      hourLabel: hourLabel ?? this.hourLabel,
+      minuteLabel: minuteLabel ?? this.minuteLabel,
       confirmButtonText: confirmButtonText ?? this.confirmButtonText,
       cancelButtonText: cancelButtonText ?? this.cancelButtonText,
       errorMessage: errorMessage ?? this.errorMessage,

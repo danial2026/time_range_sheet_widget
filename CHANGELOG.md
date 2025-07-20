@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.4
+
+- Added `singlePicker` parameter to `TimeRangeSheet` and `showTimeRangeSheet` for single time selection
+- Improved time picker UI and responsiveness
+
 ## 0.0.3
 
 - Added `showStartTimeInitially` parameter to `showTimeRangeSheet` function

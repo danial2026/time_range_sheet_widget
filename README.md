@@ -13,6 +13,12 @@ A highly customizable time range picker bottom sheet widget for Flutter with tab
 | ![Default Style](https://raw.githubusercontent.com/danial2026/time_range_sheet_widget/main/assets/demo-controls.png) |
 |------------------------------------|
 
+## Live Demo
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-View%20Online-blue?logo=flutter)](https://time-range-sheet-widget.pages.dev/)
+
+Try the interactive demo online to explore all features and customization options
+
 ## Features
 
 - **Tabbed Interface** - Intuitive tab-based selection for start and end times
@@ -71,6 +77,20 @@ TimeRangeSheet(
   onCancel: () {
     // Handle cancellation
   },
+)
+```
+
+### Single Time Picker (No Range)
+
+```dart
+TimeRangeSheet(
+  initialStartTime: TimeOfDay(hour: 12, minute: 0),
+  singlePicker: true, // Only one time picker, no start/end
+  onConfirm: (start, end) {
+    // Only 'start' is relevant in this mode
+    print('Selected: \\${start.hour}:\\${start.minute}');
+  },
+  onCancel: () {},
 )
 ```
 

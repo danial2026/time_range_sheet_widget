@@ -37,6 +37,9 @@ class TimeRangeSheet extends StatefulWidget {
   /// Whether to show start time tab initially (true) or end time tab (false)
   final bool showStartTimeInitially;
 
+  /// If true, only a single time picker is shown (no start/end distinction)
+  final bool singlePicker;
+
   const TimeRangeSheet({
     super.key,
     this.initialStartTime,
@@ -48,6 +51,7 @@ class TimeRangeSheet extends StatefulWidget {
     this.customValidator,
     this.enabled = true,
     this.showStartTimeInitially = true,
+    this.singlePicker = false,
   });
 
   @override
@@ -283,44 +287,48 @@ class _TimeRangeSheetState extends State<TimeRangeSheet> with TickerProviderStat
   }
 
   Widget _buildHeader(BuildContext context, ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(_style.cornerRadius ?? 20),
-        ),
-      ),
-      child: Column(
-        children: [
-          // Tab buttons
-          Container(
-            padding: _style.headerPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildTabButton(
-                    context,
-                    theme,
-                    _style.startTimeLabel ?? 'Start time',
-                    _formatTime(_startTime),
-                    0,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTabButton(
-                    context,
-                    theme,
-                    _style.endTimeLabel ?? 'End time',
-                    _formatTime(_endTime),
-                    1,
-                  ),
-                ),
-              ],
-            ),
+    if (!widget.singlePicker) {
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(_style.cornerRadius ?? 20),
           ),
-        ],
-      ),
-    );
+        ),
+        child: Column(
+          children: [
+            // Tab buttons
+            Container(
+              padding: _style.headerPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildTabButton(
+                      context,
+                      theme,
+                      _style.startTimeLabel ?? 'Start time',
+                      _formatTime(_startTime),
+                      0,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTabButton(
+                      context,
+                      theme,
+                      _style.endTimeLabel ?? 'End time',
+                      _formatTime(_endTime),
+                      1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return const SizedBox.shrink(); // Hide header when single picker is true
+    }
   }
 
   /// Builds a tab button for start/end time selection
@@ -394,28 +402,10 @@ class _TimeRangeSheetState extends State<TimeRangeSheet> with TickerProviderStat
     return AnimatedContainer(
       duration: _style.animationDuration ?? const Duration(milliseconds: 300),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: _style.errorPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: _style.errorPadding ?? const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            (_style.errorTextColor ?? Colors.red).withValues(alpha: 0.1),
-            (_style.errorTextColor ?? Colors.red).withValues(alpha: 0.05),
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: (_style.errorTextColor ?? Colors.red).withValues(alpha: 0.3),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (_style.errorTextColor ?? Colors.red).withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: (_style.errorTextColor ?? Colors.red).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(_style.cornerRadius ?? 12),
       ),
       child: Row(
         children: [
@@ -467,7 +457,9 @@ class _TimeRangeSheetState extends State<TimeRangeSheet> with TickerProviderStat
   Widget _buildTimePickers(BuildContext context, ThemeData theme, bool isTablet) {
     return Padding(
       padding: _style.padding ?? const EdgeInsets.all(16),
-      child: _buildTimePicker(context, theme, _selectedTabIndex == 0, isTablet),
+      child: widget.singlePicker
+          ? _buildTimePicker(context, theme, true, isTablet)
+          : _buildTimePicker(context, theme, _selectedTabIndex == 0, isTablet),
     );
   }
 
@@ -477,81 +469,152 @@ class _TimeRangeSheetState extends State<TimeRangeSheet> with TickerProviderStat
     final minute = time.minute;
     final isPM = time.hour >= 12;
 
-    return Row(
-      children: [
-        // Hour picker
-        Expanded(
-          flex: 2,
-          child: _buildScrollPicker(
-            context,
-            theme,
-            _style.use24HourFormat ? 24 : 12,
-            hour - (_style.use24HourFormat ? 0 : 1),
-            (index) {
-              int newHour;
-              if (_style.use24HourFormat) {
-                newHour = index;
-              } else {
-                // For 12-hour format, keep the AM/PM state and only change the hour within that period
-                final hourIn12Format = index + 1;
-                if (isPM) {
-                  // PM: hours 1-12 become 13-24 (but 12 PM stays as 12)
-                  newHour = hourIn12Format == 12 ? 12 : hourIn12Format + 12;
-                } else {
-                  // AM: hours 1-12 become 1-12 (but 12 AM becomes 0)
-                  newHour = hourIn12Format == 12 ? 0 : hourIn12Format;
-                }
-              }
-              final newTime = TimeOfDay(hour: newHour, minute: minute);
-              if (isStart) {
-                _updateStartTime(newTime);
-              } else {
-                _updateEndTime(newTime);
-              }
-            },
-            (index) => _style.use24HourFormat ? index.toString().padLeft(2, '0') : (index + 1).toString().padLeft(2, '0'),
-            _getOrCreateHourController(hour - (_style.use24HourFormat ? 0 : 1)),
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Minute picker
-        Expanded(
-          flex: 2,
-          child: _buildScrollPicker(
-            context,
-            theme,
-            60,
-            minute,
-            (index) {
-              final newTime = TimeOfDay(hour: time.hour, minute: index);
-              if (isStart) {
-                _updateStartTime(newTime);
-              } else {
-                _updateEndTime(newTime);
-              }
-            },
-            (index) => index.toString().padLeft(2, '0'),
-            _getOrCreateMinuteController(minute),
-          ),
-        ),
-        if (!_style.use24HourFormat) ...[
-          const SizedBox(height: 8),
-          // AM/PM picker
+    if (!widget.singlePicker) {
+      return Row(
+        children: [
+          // Hour picker
           Expanded(
-            flex: 1,
-            child: _buildAmPmToggle(context, theme, isPM, (isNewPM) {
-              final newHour = isNewPM ? (time.hour % 12) + 12 : time.hour % 12;
-              final newTime = TimeOfDay(hour: newHour, minute: minute);
-              if (isStart) {
-                _updateStartTime(newTime);
-              } else {
-                _updateEndTime(newTime);
-              }
-            }),
+            flex: 2,
+            child: _buildScrollPicker(
+              context,
+              theme,
+              _style.use24HourFormat ? 24 : 12,
+              hour - (_style.use24HourFormat ? 0 : 1),
+              (index) {
+                int newHour;
+                if (_style.use24HourFormat) {
+                  newHour = index;
+                } else {
+                  // For 12-hour format, keep the AM/PM state and only change the hour within that period
+                  final hourIn12Format = index + 1;
+                  if (isPM) {
+                    // PM: hours 1-12 become 13-24 (but 12 PM stays as 12)
+                    newHour = hourIn12Format == 12 ? 12 : hourIn12Format + 12;
+                  } else {
+                    // AM: hours 1-12 become 1-12 (but 12 AM becomes 0)
+                    newHour = hourIn12Format == 12 ? 0 : hourIn12Format;
+                  }
+                }
+                final newTime = TimeOfDay(hour: newHour, minute: minute);
+                if (isStart) {
+                  _updateStartTime(newTime);
+                } else {
+                  _updateEndTime(newTime);
+                }
+              },
+              (index) => _style.use24HourFormat ? index.toString().padLeft(2, '0') : (index + 1).toString().padLeft(2, '0'),
+              _getOrCreateHourController(hour - (_style.use24HourFormat ? 0 : 1)),
+              _style.hourLabel,
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Minute picker
+          Expanded(
+            flex: 2,
+            child: _buildScrollPicker(
+              context,
+              theme,
+              60,
+              minute,
+              (index) {
+                final newTime = TimeOfDay(hour: time.hour, minute: index);
+                if (isStart) {
+                  _updateStartTime(newTime);
+                } else {
+                  _updateEndTime(newTime);
+                }
+              },
+              (index) => index.toString().padLeft(2, '0'),
+              _getOrCreateMinuteController(minute),
+              _style.minuteLabel,
+            ),
+          ),
+          if (!_style.use24HourFormat) ...[
+            const SizedBox(width: 8),
+            // AM/PM picker
+            Expanded(
+              flex: 1,
+              child: _buildAmPmToggle(context, theme, isPM, (isNewPM) {
+                final newHour = isNewPM ? (time.hour % 12) + 12 : time.hour % 12;
+                final newTime = TimeOfDay(hour: newHour, minute: minute);
+                if (isStart) {
+                  _updateStartTime(newTime);
+                } else {
+                  _updateEndTime(newTime);
+                }
+              }),
+            ),
+          ],
+        ],
+      );
+    } else {
+      // This is the single picker mode
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                // Hour picker (single mode)
+                Expanded(
+                  flex: 2,
+                  child: _buildScrollPicker(
+                    context,
+                    theme,
+                    _style.use24HourFormat ? 24 : 12,
+                    hour - (_style.use24HourFormat ? 0 : 1),
+                    (index) {
+                      int newHour;
+                      if (_style.use24HourFormat) {
+                        newHour = index;
+                      } else {
+                        final hourIn12Format = index + 1;
+                        newHour = isPM ? (hourIn12Format == 12 ? 12 : hourIn12Format + 12) : (hourIn12Format == 12 ? 0 : hourIn12Format);
+                      }
+                      final newTime = TimeOfDay(hour: newHour, minute: minute);
+                      _updateStartTime(newTime);
+                    },
+                    (index) => _style.use24HourFormat ? index.toString().padLeft(2, '0') : (index + 1).toString().padLeft(2, '0'),
+                    _getOrCreateHourController(hour - (_style.use24HourFormat ? 0 : 1)),
+                    _style.hourLabel,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Minute picker (single mode)
+                Expanded(
+                  flex: 2,
+                  child: _buildScrollPicker(
+                    context,
+                    theme,
+                    60,
+                    minute,
+                    (index) {
+                      final newTime = TimeOfDay(hour: time.hour, minute: index);
+                      _updateStartTime(newTime);
+                    },
+                    (index) => index.toString().padLeft(2, '0'),
+                    _getOrCreateMinuteController(minute),
+                    _style.minuteLabel,
+                  ),
+                ),
+                if (!_style.use24HourFormat) ...[
+                  const SizedBox(width: 8),
+                  // AM/PM picker (single mode)
+                  Expanded(
+                    flex: 1,
+                    child: _buildAmPmToggle(context, theme, isPM, (isNewPM) {
+                      final newHour = isNewPM ? (time.hour % 12) + 12 : time.hour % 12;
+                      final newTime = TimeOfDay(hour: newHour, minute: minute);
+                      _updateStartTime(newTime);
+                    }),
+                  ),
+                ],
+              ],
+            ),
           ),
         ],
-      ],
-    );
+      );
+    }
   }
 
   /// Builds a scrollable picker for hours/minutes with enhanced styling
@@ -563,42 +626,62 @@ class _TimeRangeSheetState extends State<TimeRangeSheet> with TickerProviderStat
     Function(int) onChanged,
     String Function(int) itemBuilder,
     FixedExtentScrollController? controller,
+    String? label,
   ) {
-    return ListWheelScrollView.useDelegate(
-      controller: controller ?? FixedExtentScrollController(initialItem: selectedIndex),
-      itemExtent: _style.pickerItemHeight ?? 40,
-      physics: const FixedExtentScrollPhysics(),
-      onSelectedItemChanged: onChanged,
-      childDelegate: ListWheelChildBuilderDelegate(
-        builder: (context, index) {
-          if (index < 0 || index >= itemCount) return null;
-          final isSelected = index == selectedIndex;
+    return Column(
+      children: [
+        if (label != null) ...[
+          Text(
+            label,
+            style: _style.selectedTimeTextStyle ??
+                TextStyle(
+                  color: _style.labelTextColor ?? theme.textTheme.bodyMedium?.color,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: _style.fontFamily,
+                ),
+          ),
+          SizedBox(height: _style.labelSpacing ?? 8),
+        ],
+        Expanded(
+          child: ListWheelScrollView.useDelegate(
+            controller: controller ?? FixedExtentScrollController(initialItem: selectedIndex),
+            itemExtent: _style.pickerItemHeight ?? 40,
+            physics: const FixedExtentScrollPhysics(),
+            onSelectedItemChanged: onChanged,
+            childDelegate: ListWheelChildBuilderDelegate(
+              builder: (context, index) {
+                if (index < 0 || index >= itemCount) return null;
+                final isSelected = index == selectedIndex;
 
-          return Container(
-            alignment: Alignment.center,
-            child: Text(
-              itemBuilder(index),
-              style: _style.pickerTextStyle?.copyWith(
-                    color: isSelected
-                        ? (_style.selectedPickerTextColor ?? theme.textTheme.headlineSmall?.color)
-                        : (_style.pickerTextColor ?? theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4)),
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    fontSize: isSelected ? 32 : 24,
-                    fontFamily: _style.fontFamily,
-                  ) ??
-                  TextStyle(
-                    color: isSelected
-                        ? (_style.selectedPickerTextColor ?? theme.textTheme.headlineSmall?.color)
-                        : (_style.pickerTextColor ?? theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4)),
-                    fontSize: isSelected ? 32 : 24,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    fontFamily: _style.fontFamily,
+                return Container(
+                  alignment: Alignment.center,
+                  child: Text(
+                    itemBuilder(index),
+                    style: _style.pickerTextStyle?.copyWith(
+                          color: isSelected
+                              ? (_style.selectedPickerTextColor ?? theme.textTheme.headlineSmall?.color)
+                              : (_style.pickerTextColor ?? theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4)),
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: isSelected ? 32 : 24,
+                          fontFamily: _style.fontFamily,
+                        ) ??
+                        TextStyle(
+                          color: isSelected
+                              ? (_style.selectedPickerTextColor ?? theme.textTheme.headlineSmall?.color)
+                              : (_style.pickerTextColor ?? theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4)),
+                          fontSize: isSelected ? 32 : 24,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontFamily: _style.fontFamily,
+                        ),
                   ),
+                );
+              },
+              childCount: itemCount,
             ),
-          );
-        },
-        childCount: itemCount,
-      ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -769,6 +852,7 @@ Future<TimeRangeData?> showTimeRangeSheet({
   bool enableDrag = true,
   bool isDismissible = true,
   bool showStartTimeInitially = true,
+  bool singlePicker = false,
 }) {
   // Auto-detect theme and apply appropriate style
   final effectiveStyle =
@@ -795,6 +879,7 @@ Future<TimeRangeData?> showTimeRangeSheet({
       },
       showStartTimeInitially: showStartTimeInitially,
       onCancel: () => Navigator.of(context).pop(),
+      singlePicker: singlePicker,
     ),
   );
 }
